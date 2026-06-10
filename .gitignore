@@ -1,0 +1,10 @@
+.env
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+*.log
+logs/audit/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
