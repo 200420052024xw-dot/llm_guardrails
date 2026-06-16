@@ -1,0 +1,25 @@
+internal_project:
+  weight: 0.70
+  terms:
+    - 天枢计划
+    - Project Aurora
+    - Project Orion
+customer_name:
+  weight: 0.65
+  terms:
+    - 星河集团
+    - 北辰科技
+    - BluePeak Ltd.
+internal_system:
+  weight: 0.60
+  terms:
+    - 内部工单系统
+    - 生产数据库
+classification_label:
+  weight: 0.80
+  terms:
+    - 机密
+    - 秘密
+    - 内部资料
+    - 不得外传
+    - Confidential
