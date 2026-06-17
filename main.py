@@ -17,7 +17,9 @@ async def chat_loop() -> None:
         if not text:
             continue
 
-        request = ChatRequest(user_id="cli_user", text=text)
+        print("===")
+
+        request = ChatRequest(user_id="cli_user", original_text=text)
         response = await orchestrator.process(request)
 
         print("\nGuardrails:")
@@ -25,7 +27,7 @@ async def chat_loop() -> None:
         print(f"  action: {response.action}")
         print(f"  risk_score: {response.risk_score}")
         print(f"  message: {response.message}")
-
+        print(f"  final_text: {response.final_text}")
         print("\nLLM:")
         print(response.llm_response or "<no LLM response>")
 

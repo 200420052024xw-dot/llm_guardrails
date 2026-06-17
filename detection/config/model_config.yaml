@@ -1,0 +1,8 @@
+# API_KEY, BASE_URL, MODEL, and EMBEDDING_MODEL are configured in .env.
+chat_temperature: 0
+chat_top_p: 1
+chat_max_tokens: 512
+chat_response_format: ""
+embedding_batch_size: 64
+vector_index_path: "data/simulated/confidential_facts.vector_index.json"
+timeout: 10

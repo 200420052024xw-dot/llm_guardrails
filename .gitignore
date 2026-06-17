@@ -5,6 +5,8 @@ __pycache__/
 *.py[cod]
 *.log
 logs/audit/
+logs/record/
+detection/data/simulated/confidential_facts.vector_index.json
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

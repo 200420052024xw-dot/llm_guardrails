@@ -1,0 +1,8 @@
+matcher_threshold: 0.78
+similarity_high: 0.82
+llm_high: 0.80
+joint_similarity: 0.70
+joint_llm: 0.65
+medium_similarity: 0.65
+medium_llm: 0.60
+top_k: 3
