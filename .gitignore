@@ -8,6 +8,7 @@ logs/audit/
 logs/record/
 data/vector_store/
 data/chroma/
+*.vector_index.json
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
