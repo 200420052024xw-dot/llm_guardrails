@@ -1,21 +1,22 @@
-from core.schemas import SemanticDetectionRequest
-from core.exceptions import EmptyInputError
 from urllib.parse import unquote
-from typing import TypedDict
-import unicodedata
 import re
+import unicodedata
 
-SENTENCE_ENDINGS = {"。", "！", "？", "!", "?", ";", "；", "."}
+from core.exceptions import EmptyInputError
+
+
+SENTENCE_ENDINGS = {"\u3002", "\uff01", "\uff1f", "!", "?", ";", "\uff1b"}
 ZERO_WIDTH_RE = re.compile(r"[\u200b\u200c\u200d\ufeff]")
 WHITESPACE_RE = re.compile(r"\s+")
 
-def split_sentence(text:str)->dict[str,str]:
+
+def split_sentence(text: str) -> dict[str, str]:
     text = (text or "").strip()
     if not text:
-        raise EmptyInputError("split_sentence 接收到空文本")
+        raise EmptyInputError("split_sentence received empty text")
 
-    results : dict[str,str] = {}
-    buffer : list[str] = []
+    results: dict[str, str] = {}
+    buffer: list[str] = []
 
     def flush() -> None:
         sentence = "".join(buffer).strip()
@@ -28,34 +29,31 @@ def split_sentence(text:str)->dict[str,str]:
     for char in text:
         buffer.append(char)
 
-        if char in SENTENCE_ENDINGS or char=="\n":
+        if char in SENTENCE_ENDINGS or char == "\n":
             flush()
 
     flush()
     return results
 
-def build_semantic_detection_request(text:str):
+
+def build_semantic_detection_request(text: str) -> tuple[list[dict[str, str]], dict[str, str]]:
     sentences = split_sentence(text)
-    requests : list[SemanticDetectionRequest] = []
+    requests: list[dict[str, str]] = []
 
     for sentence_id, original_sentence in sentences.items():
-        original = original_sentence
-        normalized = unicodedata.normalize("NFKC", original)
+        normalized = unicodedata.normalize("NFKC", original_sentence)
         normalized = ZERO_WIDTH_RE.sub("", normalized)
         decoded = unquote(normalized)
         lower = decoded.lower()
-        upper = decoded.upper()
         compact = WHITESPACE_RE.sub("", lower)
 
-        requests.append(SemanticDetectionRequest(
-            sentence_id=sentence_id,
-            original=original_sentence,
-            normalized= normalized,
-            decoded=decoded,
-            lower=lower,
-            upper=upper,
-            compact=compact,
-        ))
+        requests.append({
+            "sentence_id": sentence_id,
+            "original": original_sentence,
+            "normalized": normalized,
+            "decoded": decoded,
+            "lower": lower,
+            "compact": compact,
+        })
 
-    return requests,sentences
-
+    return requests, sentences

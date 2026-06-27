@@ -22,11 +22,32 @@ class SemanticDetector:
         self.uses_model_classifier = isinstance(classifier, LLMSemanticClassifier)
 
     def detect_request(self, request: Any) -> Any:
+        result, _ = self._detect_request_internal(request)
+        return result
+
+    def detect_request_with_trace(self, request: Any) -> tuple[Any, dict[str, Any]]:
+        return self._detect_request_internal(request)
+
+    def _detect_request_internal(self, request: Any) -> tuple[Any, dict[str, Any]]:
         sentence_id = str(_get_field(request, "sentence_id", ""))
         sentence = _select_sentence_text(request)
+        request_input = {
+            "sentence_id": sentence_id,
+            "text": sentence,
+            "rule_result": _get_field(request, "rule_result"),
+        }
         sim_result = self.embedding_matcher.search(sentence, top_k=self.thresholds.top_k)
         top_hit = sim_result.get("top_hit")
         sim_score = float(top_hit["similarity"]) if top_hit else 0.0
+        similarity_trace = {
+            "input": {
+                "sentence_id": sentence_id,
+                "text": sentence,
+                "top_k": self.thresholds.top_k,
+                "matcher_threshold": self.thresholds.matcher_threshold,
+            },
+            "output": sim_result,
+        }
 
         evidence_types: list[str] = []
         risk_types: list[str] = []
@@ -43,28 +64,78 @@ class SemanticDetector:
             "reason": "",
             "is_confidential_sentence": False,
         }
+        model_trace: dict[str, Any]
         if sim_score < self.thresholds.similarity_high:
+            model_input = {
+                "sentence_id": sentence_id,
+                "text": sentence,
+                "classifier": type(self.classifier).__name__,
+            }
             cls_result = self.classifier.classify(sentence)
+            model_trace = {
+                "called": True,
+                "input": model_input,
+                "output": cls_result,
+            }
             evidence_types.append("model_detection" if self.uses_model_classifier else "rule_match")
             risk_types.extend(cls_result.get("risk_types", []))
             if cls_result.get("reason"):
                 messages.append(str(cls_result["reason"]))
         else:
+            model_trace = {
+                "called": False,
+                "input": {
+                    "sentence_id": sentence_id,
+                    "text": sentence,
+                    "classifier": type(self.classifier).__name__,
+                },
+                "output": {
+                    "reason": "high similarity matched; skipped model classification",
+                    "similarity": sim_score,
+                    "similarity_high": self.thresholds.similarity_high,
+                },
+            }
             messages.append("high similarity matched; skipped model classification")
 
         cls_score = float(cls_result.get("risk_score", 0.0))
         final_score = round(max(sim_score, cls_score), 4)
         confidential_level = self._decide_level(sim_score, cls_score)
+        if confidential_level == "pass" and _get_field(request, "rule_result") == "sensitive":
+            confidential_level = "sensitive"
 
-        return build_result(
+        result = build_result(
             sentence_id=sentence_id,
             confidential_level=confidential_level,
             risk_score=final_score,
             risk_types=sorted(set(filter(None, risk_types))),
             evidence_types=sorted(set(evidence_types)),
-            redacted_text=None,
+            redacted_text=sentence if _get_field(request, "rule_result") == "sensitive" else None,
             message="; ".join(messages)[:500] or "no semantic confidentiality risk detected",
         )
+        trace = {
+            "semantic_input": request_input,
+            "similarity_match": similarity_trace,
+            "model_recognition": model_trace,
+            "comprehensive_evaluation": {
+                "input": {
+                    "similarity_score": sim_score,
+                    "classifier_score": cls_score,
+                    "rule_result": _get_field(request, "rule_result"),
+                    "thresholds": {
+                        "similarity_high": self.thresholds.similarity_high,
+                        "llm_high": self.thresholds.llm_high,
+                        "joint_similarity": self.thresholds.joint_similarity,
+                        "joint_llm": self.thresholds.joint_llm,
+                        "medium_similarity": self.thresholds.medium_similarity,
+                        "medium_llm": self.thresholds.medium_llm,
+                    },
+                    "risk_types": sorted(set(filter(None, risk_types))),
+                    "evidence_types": sorted(set(evidence_types)),
+                },
+                "output": result,
+            },
+        }
+        return result, trace
 
     def _decide_level(self, sim_score: float, cls_score: float) -> str:
         if (
@@ -113,6 +184,10 @@ def detect_confidential_sentence(request: Any) -> Any:
     return get_default_detector().detect_request(request)
 
 
+def detect_confidential_sentence_with_trace(request: Any) -> tuple[Any, dict[str, Any]]:
+    return get_default_detector().detect_request_with_trace(request)
+
+
 def _get_field(obj: Any, field: str, default: Any = None) -> Any:
     if isinstance(obj, dict):
         return obj.get(field, default)
@@ -120,8 +195,8 @@ def _get_field(obj: Any, field: str, default: Any = None) -> Any:
 
 
 def _select_sentence_text(request: Any) -> str:
-    for field in ("decoded", "normalized", "original", "compact", "lower", "upper"):
+    for field in ("text", "original", "decoded", "normalized", "compact", "lower", "upper"):
         value = _get_field(request, field)
         if value:
             return str(value)
-    raise ValueError("SemanticDetectionRequest must contain one of decoded/normalized/original/compact/lower/upper")
+    raise ValueError("SemanticDetectionRequest must contain text")

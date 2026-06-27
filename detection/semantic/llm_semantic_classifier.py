@@ -101,6 +101,9 @@ def build_prompt(sentence: str) -> str:
 重点关注以下类型：
 {risk_lines}
 
+如果句子中出现类似 [PHONE_1]、[EMAIL_1]、[API_KEY_1]、[PASSWORD_1] 的内容，它们是前置规则检测已经替换过的脱敏占位符，不是真实敏感值。
+占位符本身不能作为保密事实、密钥泄露或个人信息泄露的判断依据。请只根据占位符以外的上下文判断是否存在内部未公开事实。
+
 只输出 JSON，不要输出解释性文本。JSON 格式如下：
 {{
   "is_confidential_sentence": true,
