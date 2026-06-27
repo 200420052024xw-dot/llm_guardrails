@@ -6,7 +6,11 @@ __pycache__/
 *.log
 logs/audit/
 logs/record/
-detection/data/simulated/confidential_facts.vector_index.json
+data/vector_store/
+data/chroma/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+frontend/node_modules/
+frontend/dist/
+llm_guardrails.db

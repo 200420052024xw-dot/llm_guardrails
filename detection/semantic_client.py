@@ -30,16 +30,20 @@ SEMANTIC_RISK_TYPES = {
 
 
 class Detector:
-    def __init__(self):
+    def __init__(self, allowed_entities=None, semantic_detector=None):
         self.max_semantic_workers = 3
         self.max_retries = 3
         self.retries_delay_seconds = 0.5
+        self.allowed_entities = allowed_entities
+        self.semantic_detector = semantic_detector
 
     def _semantic_retry(self, request_sentence: SemanticDetectionRequest) -> SemanticDetectionResult:
         last_exc: Exception | None = None
 
         for attempt in range(1, self.max_retries + 1):
             try:
+                if self.semantic_detector is not None:
+                    return self.semantic_detector.detect_request(request_sentence)
                 return detect_confidential_sentence(request_sentence)
             except Exception as exc:
                 last_exc = exc
@@ -65,7 +69,10 @@ class Detector:
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                result, trace = detect_confidential_sentence_with_trace(request_sentence)
+                if self.semantic_detector is not None:
+                    result, trace = self.semantic_detector.detect_request_with_trace(request_sentence)
+                else:
+                    result, trace = detect_confidential_sentence_with_trace(request_sentence)
                 attempts.append({
                     "attempt": attempt,
                     "status": "success",
@@ -101,7 +108,7 @@ class Detector:
         }
 
     def _detect_one(self, context: dict[str, str]) -> SemanticDetectionResult:
-        rule_result = detect_rules(context)
+        rule_result = detect_rules(context, self.allowed_entities)
         semantic_request = SemanticDetectionRequest(
             sentence_id=context["sentence_id"],
             text=rule_result.redacted_text or context["original"],
@@ -111,7 +118,7 @@ class Detector:
         return self._merge_rule_result(semantic_result, rule_result, semantic_request.text)
 
     def _detect_one_with_trace(self, context: dict[str, str]) -> tuple[SemanticDetectionResult, dict]:
-        rule_result = detect_rules(context)
+        rule_result = detect_rules(context, self.allowed_entities)
         semantic_request = SemanticDetectionRequest(
             sentence_id=context["sentence_id"],
             text=rule_result.redacted_text or context["original"],

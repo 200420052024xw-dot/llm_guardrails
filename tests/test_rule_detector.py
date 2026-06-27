@@ -7,8 +7,11 @@ def _context(text: str):
     return contexts[0]
 
 
+ALLOWED = {("phone", "13800000000")}
+
+
 def test_allowed_phone_passes_without_redaction():
-    result = detect_rules(_context("phone is 13800000000"))
+    result = detect_rules(_context("phone is 13800000000"), allowed_entities=ALLOWED)
 
     assert result.level == "pass"
     assert result.redacted_text is None

@@ -1,0 +1,31 @@
+:root{--blue:#1677ff;--blue-dark:#075dcc;--blue-soft:#eaf4ff;--blue-pale:#f5f9ff}
+.logo span,.brand-mark{background:linear-gradient(135deg,#2196ff,#0865d8)}
+.new-chat{border-color:#cfe3ff;color:#0969da;background:#f8fbff}
+.new-chat:hover{background:#eaf4ff}
+.conversation.active{background:#e4f1ff;color:#075dcc}
+.link{color:#0969da}
+.primary{background:linear-gradient(135deg,#1687ff,#0864dc);box-shadow:0 5px 14px #1677ff28}
+.auth-page{background:radial-gradient(circle at top,#e5f2ff,#f8fafc 52%)}
+.bubble{background:#e9f3ff;color:#17395f}
+.composer:focus-within{border-color:#4195f5;box-shadow:0 8px 30px #1677ff16}
+.send{width:42px;height:42px;display:grid;place-items:center;background:linear-gradient(135deg,#2196ff,#0864dc);box-shadow:0 6px 16px #1677ff4d;transition:.2s ease}
+.send:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 20px #1677ff5c}
+.send svg{width:21px;height:21px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.send:disabled{background:#c8d6e8;box-shadow:none}
+.settings nav button.active{background:#e4f1ff;color:#075dcc}.account-trigger:hover{border-color:#b0c4e8}.account-dropdown button:hover{background:#edf5ff;color:#0864dc}.sidebar-toggle:hover{background:#e4f1ff}.conv-menu-btn:hover{background:#e4f1ff;color:#075dcc}.conv-menu button:hover{background:#edf5ff;color:#0864dc}.rename-input{border-color:#1677ff}.conf-form textarea:focus,.conf-form input:focus,.conf-form select:focus,.tag-input input:focus{border-color:#4195f5;box-shadow:0 0 0 3px #1677ff16}.tag-item{background:#edf5ff;border-color:#d0e3ff}.toggle-advanced{color:#0969da;border-color:#cfe3ff}.toggle-advanced:hover{background:#edf5ff}.level-btn.active{border-color:#1677ff;background:#edf5ff}.level-btn.active b{color:#0864dc}.level-btn.active small{color:#5b9bd5}.advanced-section{background:#f8faff;border-color:#e4efff}.confirm-actions .danger{background:#e74c3c}.confirm-actions .danger:hover{background:#d63031}
+.model-status.healthy .status-dot{background:#20b26b;box-shadow:0 0 0 3px #20b26b20}
+.welcome{margin-top:16vh}
+.welcome h1{font-size:38px;letter-spacing:-1px;color:#162a43;margin-bottom:14px}
+.toast{border-color:#e4efff;box-shadow:0 8px 30px #1677ff16}
+.welcome p{font-size:15px;color:#7890aa}
+.thinking{display:flex;align-items:center;gap:5px;min-height:40px;color:#56708d;font-size:14px}
+.thinking span{margin-right:4px}
+.thinking i{display:block;width:7px;height:7px;border-radius:50%;background:#2588ef;animation:thinking 1.2s infinite ease-in-out}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes thinking{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.message-actions{display:flex;gap:7px;margin-top:8px}
+.message-actions button{border:0;background:transparent;color:#7890a8;padding:6px 8px;border-radius:7px;font-size:13px}
+.message-actions button:hover{background:#edf5ff;color:#0864dc}
+.message-actions span{margin-left:3px}
+.decision.pass{background:#ecf8f2}.decision.redact{background:#fff8e8}.decision.block{background:#fff0f2}
+@media(max-width:720px){.welcome h1{font-size:29px}.message-actions span{display:none}}

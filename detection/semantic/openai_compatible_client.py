@@ -27,18 +27,19 @@ class OpenAICompatibleClient:
         embedding_model: str | None = None,
         embedding_batch_size: int | None = None,
         timeout: float | None = None,
+        use_env: bool = True,
     ):
         config = load_model_config()
-        self.api_key = api_key or os.getenv("API_KEY")
-        self.base_url = (base_url or os.getenv("BASE_URL", DEFAULT_BASE_URL)).rstrip("/")
-        self.chat_model = chat_model or os.getenv("MODEL", DEFAULT_MODEL)
-        self.embedding_api_key = os.getenv("EMBEDDING_API_KEY") or self.api_key
-        self.embedding_base_url = _normalize_base_url(os.getenv("EMBEDDING_BASE_URL") or self.base_url)
+        self.api_key = api_key if not use_env else (api_key or os.getenv("API_KEY"))
+        self.base_url = (base_url or (os.getenv("BASE_URL", DEFAULT_BASE_URL) if use_env else DEFAULT_BASE_URL)).rstrip("/")
+        self.chat_model = chat_model or (os.getenv("MODEL", DEFAULT_MODEL) if use_env else DEFAULT_MODEL)
+        self.embedding_api_key = (os.getenv("EMBEDDING_API_KEY") if use_env else None) or self.api_key
+        self.embedding_base_url = _normalize_base_url((os.getenv("EMBEDDING_BASE_URL") if use_env else None) or self.base_url)
         self.chat_temperature = config.chat_temperature
         self.chat_top_p = config.chat_top_p
         self.chat_max_tokens = config.chat_max_tokens
         self.chat_response_format = config.chat_response_format
-        self.embedding_model = embedding_model or os.getenv("EMBEDDING_MODEL")
+        self.embedding_model = embedding_model or (os.getenv("EMBEDDING_MODEL") if use_env else None)
         self.embedding_batch_size = max(1, embedding_batch_size or config.embedding_batch_size)
         self.embedding_max_workers = max(1, int(os.getenv("EMBEDDING_MAX_WORKERS", "4")))
         self.timeout = timeout if timeout is not None else config.timeout

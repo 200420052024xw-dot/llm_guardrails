@@ -4,5 +4,5 @@ chat_top_p: 1
 chat_max_tokens: 512
 chat_response_format: ""
 embedding_batch_size: 64
-vector_index_path: "data/simulated/confidential_facts.vector_index.json"
+vector_index_path: "data/vector_store"
 timeout: 10

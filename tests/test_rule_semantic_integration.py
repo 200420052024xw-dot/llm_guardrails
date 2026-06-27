@@ -33,7 +33,7 @@ def test_rule_redaction_survives_semantic_pass(monkeypatch):
 
 def test_allowed_phone_can_remain_pass(monkeypatch):
     monkeypatch.setattr(semantic_client, "detect_confidential_sentence", _pass_semantic)
-    detector = Detector()
+    detector = Detector(allowed_entities={("phone", "13800000000")})
     contexts, original_sentences = build_semantic_detection_request("phone is 13800000000")
 
     detect_results = detector.start_detect(contexts)

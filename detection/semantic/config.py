@@ -14,7 +14,6 @@ class ModelConfig:
     chat_max_tokens: int = 512
     chat_response_format: str = "json_object"
     embedding_batch_size: int = 64
-    vector_index_path: str = str(DETECTION_ROOT / "data" / "simulated" / "confidential_facts.vector_index.json")
     timeout: float = 30.0
 
 
@@ -33,17 +32,12 @@ class SemanticThresholds:
 def load_model_config(path: str | Path = DETECTION_ROOT / "config" / "model_config.yaml") -> ModelConfig:
     values = _load_flat_yaml(path)
     defaults = ModelConfig()
-    vector_index_path = str(values.get("vector_index_path", defaults.vector_index_path))
-    if not Path(vector_index_path).is_absolute():
-        vector_index_path = str(DETECTION_ROOT / vector_index_path)
-
     return ModelConfig(
         chat_temperature=float(values.get("chat_temperature", defaults.chat_temperature)),
         chat_top_p=float(values.get("chat_top_p", defaults.chat_top_p)),
         chat_max_tokens=max(1, int(values.get("chat_max_tokens", defaults.chat_max_tokens))),
         chat_response_format=str(values.get("chat_response_format", defaults.chat_response_format)),
         embedding_batch_size=max(1, int(values.get("embedding_batch_size", defaults.embedding_batch_size))),
-        vector_index_path=vector_index_path,
         timeout=float(values.get("timeout", defaults.timeout)),
     )
 

@@ -4,9 +4,8 @@ from functools import lru_cache
 from typing import Any
 import os
 
-from .config import DETECTION_ROOT, SemanticThresholds, load_model_config, load_thresholds
+from .config import SemanticThresholds, load_thresholds
 from .embedding_matcher import EmbeddingMatcher
-from .fact_store import expand_fact_texts, file_sha256, load_facts
 from .hash_embedding_client import HashEmbeddingClient
 from .local_embedding_client import LocalEmbeddingClient
 from .llm_semantic_classifier import LLMSemanticClassifier, OfflineRuleClassifier
@@ -151,31 +150,19 @@ class SemanticDetector:
 
 @lru_cache(maxsize=1)
 def get_default_detector() -> SemanticDetector:
+    """Get default detector. Uses ChromaDB vector store for per-user detection."""
     thresholds = load_thresholds()
-    model_config = load_model_config()
     api_client = OpenAICompatibleClient()
 
     local_embedding_path = os.getenv("LOCAL_EMBEDDING_MODEL_PATH")
     if local_embedding_path:
         embedding_client: Any = LocalEmbeddingClient(local_embedding_path)
-        embedding_model = local_embedding_path
     elif api_client.embedding_configured:
         embedding_client = api_client
-        embedding_model = api_client.embedding_model
     else:
         embedding_client = HashEmbeddingClient()
-        embedding_model = "hash-embedding-client-v1"
 
     matcher = EmbeddingMatcher(embedding_client, threshold=thresholds.matcher_threshold)
-    fact_path = DETECTION_ROOT / "data" / "simulated" / "confidential_facts.jsonl"
-    facts = load_facts(fact_path)
-    matcher.build_or_load_index(
-        rows=expand_fact_texts(facts),
-        index_path=model_config.vector_index_path,
-        source_sha256=file_sha256(fact_path),
-        embedding_model=embedding_model,
-    )
-
     classifier: Any = LLMSemanticClassifier(api_client) if api_client.configured else OfflineRuleClassifier()
     return SemanticDetector(matcher, classifier, thresholds)
 

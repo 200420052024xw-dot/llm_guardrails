@@ -7,7 +7,10 @@ from .patterns import PATTERNS, PII_TYPES, has_rule_candidate, valid_id_card, va
 from .redactor import RuleMatch, redact_text
 
 
-def detect_rules(context: dict[str, str]) -> RuleDetectionResult:
+def detect_rules(
+    context: dict[str, str],
+    allowed_entities: set[tuple[str, str]] | None = None,
+) -> RuleDetectionResult:
     sentence_id = context["sentence_id"]
     original = context["original"]
     decoded = context["decoded"]
@@ -15,7 +18,7 @@ def detect_rules(context: dict[str, str]) -> RuleDetectionResult:
     if not has_rule_candidate(decoded):
         return RuleDetectionResult(sentence_id=sentence_id)
 
-    matches = _find_matches(original)
+    matches = _find_matches(original, allowed_entities)
     if not matches:
         return RuleDetectionResult(sentence_id=sentence_id)
 
@@ -31,7 +34,10 @@ def detect_rules(context: dict[str, str]) -> RuleDetectionResult:
     )
 
 
-def _find_matches(text: str) -> list[RuleMatch]:
+def _find_matches(
+    text: str,
+    allowed_entities: set[tuple[str, str]] | None = None,
+) -> list[RuleMatch]:
     matches: list[RuleMatch] = []
     occupied: list[tuple[int, int]] = []
 
@@ -47,7 +53,12 @@ def _find_matches(text: str) -> list[RuleMatch]:
                 continue
             if pattern.type == "bank_card" and not valid_luhn(value):
                 continue
-            if pattern.type in PII_TYPES and is_allowed_entity(pattern.type, value):
+            is_public = (
+                (pattern.type, value) in allowed_entities
+                if allowed_entities is not None
+                else is_allowed_entity(pattern.type, value)
+            )
+            if pattern.type in PII_TYPES and is_public:
                 continue
             matches.append(RuleMatch(pattern.type, value, start, end))
             occupied.append((start, end))
